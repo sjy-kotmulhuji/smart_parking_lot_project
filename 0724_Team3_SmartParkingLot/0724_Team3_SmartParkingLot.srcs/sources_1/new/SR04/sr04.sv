@@ -16,7 +16,9 @@ module sr04 (
     output logic o_vga_start,
     input  logic i_vga_done,
     
-    // SG90
+    output logic trigger,
+    output logic o_capture,
+    output logic o_open,
     output logic o_close
 );
 
