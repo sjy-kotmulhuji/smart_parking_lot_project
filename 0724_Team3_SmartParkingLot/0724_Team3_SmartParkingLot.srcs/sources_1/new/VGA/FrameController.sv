@@ -13,7 +13,10 @@ module FrameController (
     output logic [31:0] o_data,
     output logic [ 7:0] o_addr,
 
-    // to CNN_top
+    // from SR04
+    input  logic i_vga_start,
+
+    // to CNN_top & SR04
     output logic o_vga_done
 );
 
@@ -22,6 +25,83 @@ module FrameController (
     // Pixel data
     logic [23:0] PXLcrop;
     logic        PXLmono;
+    // start control
+    logic [23:0] RGB_passing;
+    logic [10:0] x_pixel_passing, y_pixel_passing;
+    logic        w_vga_done;
+
+    // FSM
+    localparam IDLE = 0,
+               WAIT = 1,
+               WORK = 2,
+               DONE = 3;
+    logic [1:0] state, n_state;
+
+    /********* state update *********/
+    always_ff @(posedge i_pixel_clk, posedge reset) begin
+        if(reset) begin
+            state <= IDLE;
+        end else begin
+            state <= n_state;
+        end
+    end
+
+    /******* next state logic *******/
+    always_comb begin
+        n_state = state;
+        case(state)
+            IDLE: begin
+                if(i_vga_start) n_state = WAIT;
+            end
+            WAIT: begin
+                if(i_y_pixel == 210) n_state = WORK;
+            end
+            WORK: begin
+                if(w_vga_done) n_state = DONE;
+            end
+            DONE: begin
+                n_state = IDLE;
+            end
+        endcase
+    end
+
+    /******** output logic ********/
+    always_ff @(posedge i_pixel_clk, posedge reset) begin
+        if(reset) begin
+            RGB_passing     <= 24'd0;
+            x_pixel_passing <= 11'd0;
+            y_pixel_passing <= 11'd0;
+            o_vga_done      <= 1'b0;
+        end else begin
+            case(state)
+                IDLE: begin
+                    RGB_passing     <= 24'd0;
+                    x_pixel_passing <= 11'd0;
+                    y_pixel_passing <= 11'd0;
+                    o_vga_done      <= 1'b0;
+                end
+                WAIT: begin
+                    RGB_passing     <= 24'd0;
+                    x_pixel_passing <= 11'd0;
+                    y_pixel_passing <= 11'd0;
+                    o_vga_done      <= 1'b0;
+                end
+                WORK: begin
+                    RGB_passing     <= i_RGB;
+                    x_pixel_passing <= i_x_pixel;
+                    y_pixel_passing <= i_y_pixel;
+                    o_vga_done      <= 1'b0;
+                end
+                DONE: begin
+                    RGB_passing     <= 24'd0;
+                    x_pixel_passing <= 11'd0;
+                    y_pixel_passing <= 11'd0;
+                    o_vga_done      <= 1'b1;
+                end
+            endcase
+        end
+    end
+    /******************************/
 
     logic [ 3:0] valid_position;
 
@@ -58,8 +138,7 @@ module FrameCrop (
     output logic [ 3:0] o_pos
 );
 
-    logic [10:0] x_en, y_en;
-    assign y_en = ((i_y_pixel >= 456) && (i_y_pixel < 624)) ? 1'b1 : 1'b0;
+    logic x_en, y_en;
 
     // position
     always_comb begin
@@ -70,7 +149,7 @@ module FrameCrop (
         else o_pos = 4'b0000;
     end
 
-    // pixel data pass
+    /******* next state logic *******/
     always_comb begin
         case (o_pos)
             4'b0001: x_en = (i_x_pixel - 624) % 6;
@@ -116,6 +195,13 @@ module FrameRegister (
     logic [27:0] FrameReg;
     logic [4:0] bitCnt, lineCnt;  // 0 ~ 28
 
+    localparam IDLE = 0,
+               PIXEL_REG = 1,
+               WRITE = 2,
+               VGA_DONE = 3;
+    logic [1:0] state, n_state;
+
+    /********* state update *********/
     always_ff @(posedge i_pixel_clk, posedge reset) begin
         if (reset) begin
             o_we    <= 1'b0;
@@ -140,6 +226,7 @@ module FrameRegister (
         end
     end
 
+    /******* next state logic *******/
     always_comb begin
         case (i_pos)
             4'b0001: o_addr = lineCnt + 2;

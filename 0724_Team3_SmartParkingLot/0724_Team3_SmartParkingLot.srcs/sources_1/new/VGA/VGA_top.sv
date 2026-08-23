@@ -16,7 +16,7 @@ module VGA_top (
     input logic i_capture,
 
     // to CNN
-    output logic vga_done
+    output logic o_vga_done
 );
 
     logic        frame_we;
