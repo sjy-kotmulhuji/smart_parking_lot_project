@@ -6,7 +6,7 @@ module sr04 (
     input  logic echo,
     input  logic i_cnn_done,
     
-    // output logic trigger,
+    output logic trigger,
     output logic o_capture,
     output logic o_open,
     output logic o_close
