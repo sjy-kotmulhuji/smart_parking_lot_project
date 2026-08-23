@@ -1,0 +1,4 @@
+numpy
+opencv-python
+Pillow
+flask  # pcam_stream_sender.py 실행 시에만 필요 (pcam이 다른 PC에 연결된 경우)
