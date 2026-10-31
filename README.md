@@ -1,4 +1,4 @@
-# 🚗 Edge AI & FPGA 기반 스마트 주차장 입출차 및 관제 시스템
+# 🚗 스마트 주차장
 > **Team 3: CARS대라 (카스대라)**  
 > **Xilinx Zynq-7000 (Zybo Z7-20) FPGA 가속기 & NVIDIA Jetson Orin Nano 기반 이종(Heterogeneous) 엣지 컴퓨팅 주차 관제 솔루션**
 
