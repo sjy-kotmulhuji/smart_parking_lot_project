@@ -1,5 +1,5 @@
 # 🚗 스마트 주차장
-> 온디바이스AI 시스템 반도체 설계 1기  | 대한상공회의소 서울기술교육센터 | 2026.07.21 |
+> 온디바이스AI 시스템 반도체 설계 1기  | 대한상공회의소 서울기술교육센터 | 2026.08.20 |
 > Cars대라(김수빈, 김지홍, 문태성, 서어진, 송주연, 윤수민, 조준호)
 
 **Xilinx Zynq-7000 (Zybo Z7-20) FPGA 가속기 & NVIDIA Jetson Orin Nano 기반 이종(Heterogeneous) 엣지 컴퓨팅 주차 관제 솔루션**
@@ -22,13 +22,7 @@
 ## 1. 프로젝트 개요
 
 ### 1-1. 개발 배경
-**기존 대형 주차장의 문제점**
-- 주차 자리 탐색으로 인한 시간 낭비
-- 빈자리를 차지하기 위해 발생하는 운전자 간 갈등
-
-**개선 방법**
-- 주차장 입장 시 차량 맞춤형 빈자리로 안내하는 네비게이션 시스템
-- 
+주차 자리 탐색으로 인한 시간 낭비와 운전자 간 갈등 발생을 방지하기 위해 차량별 맞춤 빈 자리를 안내해주는 스마트 주차장 시스템 구현
 
 ### 1-2. 프로젝트 목표
 본 프로젝트는 **FPGA 하드웨어 가속 기반 입구 게이트 시스템**과 **GPU 엣지 컴퓨팅 기반 주차장 내부 관제 시스템**이 유기적으로 결합된 **이종 엣지 컴퓨팅 스마트 주차장 시스템**을 구현하는 것을 목표로 합니다.
@@ -59,6 +53,25 @@ flowchart LR
 ---
 
 ## 2. 개발 환경
+
+<table>
+<tr><td><b>Language</b></td><td>
+<img src="https://img.shields.io/badge/-VERILOG-1E88E5?style=for-the-badge&logoColor=white"/>
+<img src="https://img.shields.io/badge/C-FFC107?style=for-the-badge&logo=c&logoColor=white"/>
+</td></tr>
+<tr><td><b>Tool</b></td><td>
+<img src="https://img.shields.io/badge/VIVADO-006400?style=for-the-badge&logo=amd&logoColor=white"/>
+<img src="https://img.shields.io/badge/VITIS-004B87?style=for-the-badge&logo=amd&logoColor=white"/>
+</td></tr>
+<tr><td><b>Protocol</b></td><td>
+<img src="https://img.shields.io/badge/AXI4--LITE-0B1F3A?style=for-the-badge&logo=amd&logoColor=white"/>
+</td></tr>
+<tr><td><b>Board</b></td><td>
+<img src="https://img.shields.io/badge/BASYS3_(XILINX_ARTIX--7)-5BC0DE?style=for-the-badge&logo=amd&logoColor=white"/>
+</td></tr>
+</table>
+
+---
 
 ### 2-1. 하드웨어 스펙
 | 구분 | 디바이스 / 부품명 | 세부 사양 및 인터페이스 |
