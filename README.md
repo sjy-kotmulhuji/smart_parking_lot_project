@@ -8,7 +8,7 @@ fh # 🚗 스마트 주차장
 1. [프로젝트 개요](#프로젝트-개요)
 2. [개발 환경](#개발-환경)
 3. [시스템 구성](#시스템-구성)
-4. [설계 내용](#4-설계-내용)
+4. [핵심 구현 내용](#핵심-구현-내용)
    - [4-1. 출입구 차량 인식 및 번호판 인식 시스템](#4-1-출입구-차량-인식-및-번호판-인식-시스템)
    - [4-2. 하드웨어 CNN 가속기 (Core Architecture)](#4-2-하드웨어-cnn-가속기-core-architecture)
    - [4-3. 주차장 내부 제어 및 관제 시스템](#4-3-주차장-내부-제어-및-관제-시스템)
@@ -18,6 +18,20 @@ fh # 🚗 스마트 주차장
 ---
 
 ## 프로젝트 개요
+
+<table>
+  <tr>
+    <td align="left">
+      <img src="https://github.com/user-attachments/assets/f96ebbc9-a0b9-4cfd-9682-9d2ae0262431" />
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+      <b>그림 1. 주차장 관제 GUI </b>
+    </td>
+  </tr>
+</table>
+
 
 ### 개발 배경
 주차장 이용 시 주차 자리 탐색으로 인한 시간 낭비와 운전자 간 갈등 발생을 방지하기 위한 스마트 주차장 시스템 고안
@@ -54,25 +68,6 @@ fh # 🚗 스마트 주차장
 
 ---
 
-### 하드웨어 스펙
-| 구분 | 디바이스 / 부품명 | 세부 사양 및 인터페이스 |
-| :--- | :--- | :--- |
-| **FPGA Board** | Digilent Zybo Z7-20 | Xilinx Zynq-7000 (XC7Z020-1CLG400C) Dual Cortex-A9 @ 667MHz |
-| **Edge Server** | NVIDIA Jetson Orin Nano | 8GB/4GB, Ampere GPU, ARM Cortex-A78AE |
-| **카메라 (입구)** | Digilent Pcam 5C (OV5640) | 5MP CMOS 센서, 2-Lane MIPI CSI-2 |
-| **카메라 (내부)** | RTSP/CCTV Camera | 1080p @ 30fps 스트리밍 |
-| **센서** | HC-SR04 초음파 센서 | 입구 차량 접근 감지 (Trigger) |
-| **액추에이터** | SG90 마이크로 서보모터 | 50Hz PWM 차단기 개폐 제어 |
-| **디스플레이** | HDMI Monitor | 720p@60Hz 실시간 카메라 영상 및 디버그 오버레이 |
-
-### 소프트웨어 & 툴체인
-* **FPGA Logic & SoC**: Xilinx Vivado 2020.2, Vitis 2020.2 (Baremetal C/C++ 펌웨어)
-* **하드웨어 기술 언어**: Verilog, SystemVerilog
-* **딥러닝 프레임워크**: PyTorch (모델 학습 및 양자화), NVIDIA TensorRT (Jetson 엔진)
-* **엣지 비전 라이브러리**: OpenCV 4.x, GStreamer, ByteTrack C++/Python Wrapper
-* **관제 GUI & 통신**: PySide6 (Qt for Python), PySerial (115200 bps)
-
----
 
 ## 시스템 구성
 
@@ -85,27 +80,32 @@ fh # 🚗 스마트 주차장
   </tr>
   <tr>
     <td align="left">
-      <b>그림 1. Top Architecture Diagram</b>
+      <b>그림 2. Top Architecture Diagram</b>
     </td>
   </tr>
 </table>
 
+---
 
 ### 구성요소 별 역할
 
-| 구성요소 | 역할 | 상세 |
+| 구성요소 | 역할 | 상세 설명 |
 | :--- | :--- | :--- |
 | **Zybo Z7 PL 영역 (FPGA)** |  출입구 시스템 하드웨어 로직 | 센서 제어, 영상 및 이미지 처리, 번호판 추론 CNN 가속기 로직 구현 |
 | **Zybo Z7 PS 영역(ARM)** | Firmware 기반 출입구 시스템 제어 | OV5640 카메라 I2C/SCCB 레지스터 세팅, VDMA 및 HDMI 비디오 출력 파이프라인 관리, 부팅 시 CNN 가중치 BRAM 주입, 시스템 모니터링 |
+| **Jetson Orin Nano** | 주차장 내부 시스템 및 중앙 관제 |YOLOv8n 기반 내부 차량 검출, ByteTrack 기반 다중 객체 추적, 최단거리 빈자리 배정 및 안내 알고리즘 |
 | **Pcam 5C (OV5640)** | 출입구 차단바 CCTV | 주차장 출입 차량의 전면 번호판 고해상도 촬영 및 MIPI 전송 |
-| **HC-SR04** |  | 차량 3cm 진입 감지 시 FSM 트리거, 번호판 인식 완료 시 차단기 90도 회전 오픈 |
-| **SG90** | Comm | Zybo(PL) $\rightarrow$ Jetson Orin Nano 간 8비트 패킷 기반 4자리 차량 번호 실시간 전송 |
-| **Jetson Orin Nano** | YOLOv8n 기반 내부 차량 검출, ByteTrack 기반 다중 객체 추적, 호모그래피 투영 변환, 최단 빈자리 알고리즘 |
-| **통합 관제 GUI** | Software | 실시간 2D 주차장 지도 시각화, 차량 위치 추적, 주차면 점유 상태 모니터링, 차량 번호 검색 |
+| **HC-SR04** | 차량 접근 감지 센서 | 차량 3cm 이하 접근 감지 시 FSM 트리거, 번호판 인식 완료 시 차단기 오픈 신호 출력 |
+| **SG90** |  차단바 역할 서보 모터 | 신호가 입력되면 90도 회전하여 차단기 오픈 |
+| **HDMI** | 차단바 CCTV 영상 송출 | 차단바 CCTV 영상에 번호판 캡처 영역를 표시하여 모니터에 송출 |
 
 ---
 
-## 4. 설계 내용
+## 핵심 구현 내용
+
+### 하드웨어 CNN 가속기
+- 번호판 이미지로부터 숫자를 추론하여 차량 번호 4자리 인식
+- Lenet-5 기반 Adder Tree 구조의 CNN 가속기를 하드웨어로 구현
 
 ### 4-1. 출입구 차량 인식 및 번호판 인식 시스템
 
@@ -199,6 +199,10 @@ Input (32x32)
 ---
 
 ## 5. 검증 및 결과
+
+주차장 구조
+<img width="716" height="440" alt="image" src="https://github.com/user-attachments/assets/2ecb4a58-c361-4837-a02c-87965d9425c4" />
+
 
 ### 5-1. 하드웨어 타이밍 및 리소스 지표 (Zybo Z7-20)
 * **시스템 클록**: 100 MHz (클록 주기: 10.0 ns)
