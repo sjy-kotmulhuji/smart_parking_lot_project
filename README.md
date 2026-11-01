@@ -22,7 +22,7 @@ fh # 🚗 스마트 주차장
 <table>
   <tr>
     <td align="left">
-      <img src="https://github.com/user-attachments/assets/f96ebbc9-a0b9-4cfd-9682-9d2ae0262431" />
+      <img src= "https://github.com/user-attachments/assets/f96ebbc9-a0b9-4cfd-9682-9d2ae0262431" />
     </td>
   </tr>
   <tr>
@@ -33,8 +33,13 @@ fh # 🚗 스마트 주차장
 </table>
 
 
+---
+
+
 ### 개발 배경
 주차장 이용 시 주차 자리 탐색으로 인한 시간 낭비와 운전자 간 갈등 발생을 방지하기 위한 스마트 주차장 시스템 고안
+
+---
 
 ### 프로젝트 목표
 - 주차장 출입 시 CNN 하드웨어 가속기를 통한 차량 번호판 인식
@@ -106,6 +111,34 @@ fh # 🚗 스마트 주차장
 ### 하드웨어 CNN 가속기
 - 번호판 이미지로부터 숫자를 추론하여 차량 번호 4자리 인식
 - Lenet-5 기반 Adder Tree 구조의 CNN 가속기를 하드웨어로 구현
+
+<table>
+  <tr>
+    <td align="left">
+      <img src="https://github.com/user-attachments/assets/ec965625-520d-469c-ac9d-6c70673ccc81" />
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+      <b>그림 3. Lenet-5 모델 구조</b>
+    </td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <td align="left">
+      <img src="https://github.com/user-attachments/assets/8618631c-4106-44ee-b003-cd40e526aae0" />
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+      <b>그림 4. Lenet-5를 본뜬 CNN 하드웨어 가속기 구조</b>
+    </td>
+  </tr>
+</table>
+
+
 
 ### 4-1. 출입구 차량 인식 및 번호판 인식 시스템
 
