@@ -15,12 +15,12 @@
 <table>
   <tr>
     <td align="left">
-      <img src= "https://github.com/user-attachments/assets/f96ebbc9-a0b9-4cfd-9682-9d2ae0262431" />
+      <img src="https://github.com/user-attachments/assets/f56e2891-617b-47d1-af70-e133cb3c695f" />
     </td>
   </tr>
   <tr>
     <td align="left">
-      <b>그림 1. 주차장 관제 GUI </b>
+      <b>그림 1. 프로젝트 개요 </b>
     </td>
   </tr>
 </table>
@@ -209,51 +209,57 @@
 
 ---
 
-## 5. 결과 및 동작 영상
+## 5. 결과 영상
 **출입구 동작**
 
 https://github.com/user-attachments/assets/cd89b762-09ff-4301-8b4f-eb390fe35b82
 
-
-
-
-
-**전체 동작**
-
-https://github.com/user-attachments/assets/8bcdc438-0090-4a83-a0f9-24e6e27f1a44
-
-
-
-
-
-
-
-
-### 5-1. 하드웨어 타이밍 및 리소스 지표 (Zybo Z7-20)
-* **시스템 클록**: 100 MHz (클록 주기: 10.0 ns)
-* **Worst Negative Slack (WNS)**: `-2.450 ns` (벤더 MIPI D-PHY 외부 입력 경로 외 내부 로직 **타이밍 클로저 달성**)
-* **Total Negative Slack (TNS)**: `-4349.38 ns` $\rightarrow$ **`-10.68 ns`** (99.7% 대폭 개선)
-* **타이밍 실패 엔드포인트**: **3,432개 $\rightarrow$ 단 29개**로 급감
-
-### 5-2. 시스템 동작 및 성능 검증
-| 검증 항목 | 목표 기준 | 실제 달성 결과 | 비고 |
-| :--- | :---: | :---: | :--- |
-| **FPGA 번호판 4자리 추론 시간** | < 100 ms | **< 5 ms** | 소프트웨어 대비 압도적인 하드웨어 가속 |
-| **차단기 FSM 응답 성공률** | 99% | **100%** | 초음파 $\rightarrow$ CNN $\rightarrow$ 서보모터 정상 연동 |
-| **UART 데이터 수신 신뢰성** | 99% | **99.9%** | 115200bps 무손실 패킷 파싱 |
-| **Jetson YOLOv8n 추론 속도** | > 30 FPS | **45+ FPS** | TensorRT FP16 엔진 적용 |
-| **호모그래피 평면 좌표 정밀도** | < 30 cm | **< 15 cm** | 지점별 캘리브레이션 정밀 튜닝 완료 |
+1. 차단바의 초음파센서(SR04)에 차량이 다가가면 번호판 영역을 캡쳐하여 CNN으로 4자리 차량 번호를 추론
+2. 추론이 끝나면 차단바의 서보모터(SG90)가 열림
+3. 차량이 주차장 내부로 들어가면 차단바의 서보모터(SG90)가 닫힘
 
 ---
 
-## 6. 트러블 슈팅 (Troubleshooting)
+**주차장 내부 동작**
 
-### 🔥 Trouble 1. AXI Weight Loader $\rightarrow$ Conv2 BRAM 주소 연산 Negative Slack 심화
+https://github.com/user-attachments/assets/8bcdc438-0090-4a83-a0f9-24e6e27f1a44
+
+1. 출입구로부터 차량 번호를 Wi-Fi로 수신받으면 최단거리 빈자리를 자동 매칭
+2. 차량이 빈자리에 주차 완료할 때까지 실시간 길 안내
+3. 출차 시 차량 번호를 인식하면 체류 시간을 자동 계산하여 주차 요금 자동 정산
+
+---
+
+## 6. 검증
+**CNN 하드웨어 가속기 추론 시간 개선 검증**
+
+<table>
+  <tr>
+    <td align="left">
+      <img src="https://github.com/user-attachments/assets/f0dc5daf-6db8-4ecc-80af-49f16c9d7b27" />
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+      <b>그림 9. 가속 전후 속도 비교</b>
+    </td>
+  </tr>
+</table>
+
+- 한 글자 추론 시간 기준으로 시뮬레이션 비교
+- 가속 전: Adder Tree 적용 전 단순 누적 방식(4293.53µs)
+- 가속 후: Adder Tree 적용 후(649.05µs)
+- 약 6.6배 속도 향상 확인
+
+---
+## 7. 문제 해결
+
+### Trouble 1. AXI Weight Loader -> Conv2 BRAM 주소 연산 Negative Slack 심화
 * **현상**: 초기 타이밍 분석 결과 **WNS `-7.434 ns`**, **TNS `-4349.38 ns`**, 타이밍 실패 엔드포인트 **3,432개** 발생.
 * **원인 분석**:
   * Conv2 계층은 6채널 병렬 처리를 위해 가중치가 6개의 물리 BRAM에 분산 저장됨.
   * 1차원 순차 주소(`0 ~ 2399`)를 6개 BRAM에 맞게 분배하기 위해 **150 나눗셈(`*437 >> 16`), 25 나눗셈(`*41 >> 10`), 뺄셈, 6채널 Write Enable 디코딩**이 한 클럭 안에 직렬 조합 논리로 묶여 12~14단의 극심한 논리 지연(LUT, CARRY4, DSP) 유발.
-* **개선 조치 ([BRAM.sv: Line 167~280](file:///c:/Smart_Parking_Lot/zybo-z7_real_final/zybo-z7_real_final.srcs/sources_1/imports/new/BRAM.sv#L167-L280))**:
+* **개선 조치**
   * 한 클럭에 처리하던 주소 연산 로직을 **4단계 파이프라인 플립플롭(`always_ff`)**으로 분할:
     * `Stage 1`: 출력 채널 계산 (`*437`)
     * `Stage 2`: 상대 주소 계산 (`- out_ch*150`)
@@ -262,15 +268,8 @@ https://github.com/user-attachments/assets/8bcdc438-0090-4a83-a0f9-24e6e27f1a44
   * Weight Loader IP 내부에도 2단 F/F 레지스터링 적용.
 * **결과**:
   * 내부 커스텀 로직의 타이밍 위반 완전 해소.
-  * **TNS 99.7% 감소 (`-4349.38ns` $\rightarrow$ `-10.68ns`)**, 실패 경로 수 **3,432개 $\rightarrow$ 29개**로 급감.
+  * **TNS 99.7% 감소 (`-4349.38ns` -> `-10.68ns`)**, 실패 경로 수 **3,432개 -> 29개**로 급감.
   *(※ 잔여 WNS -2.45ns는 Digilent 공식 MIPI D-PHY RX IP의 외부 보드 핀 제약에 기인함을 확인)*
 
 ---
 
----
-
-### 🔥 Trouble 3. 카메라 $\leftrightarrow$ 메인 FSM 제어 신호 클록 도메인 크로싱
-* **현상**: 100MHz FSM에서 보낸 1클럭 펄스 `vga_start`를 25MHz 카메라 제어기가 샘플링하지 못하고 신호를 유실(펄스 누락)하여 상태 머신이 멈추는 현상 발생.
-* **개선 조치 ([sr04.sv: Line 103~135](file:///c:/Smart_Parking_Lot/zybo-z7_real_final/zybo-z7_real_final.srcs/sources_1/imports/Final/SR04/sr04.sv#L103-L135))**:
-  * 단순 레벨 동기화 대신 **Toggle 기반 Pulse Synchronizer (`PulseSync_100M_to_25M`, `PulseSync_25M_to_100M`)**를 설계하여 왕복 배치.
-  * 빠른 클록의 펄스를 토글 신호(0 $\leftrightarrow$ 1)로 변환 후 2-FF 동기화를 거쳐 XOR로 1클럭 복원함으로써 100% 신호 전달 보장.
