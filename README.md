@@ -1,4 +1,4 @@
-# 🚗 스마트 주차장
+fh # 🚗 스마트 주차장
 > 온디바이스AI 시스템 반도체 설계 1기  | 대한상공회의소 서울기술교육센터 | 2026.08.20 |
 > Cars대라(김수빈, 김지홍, 문태성, 서어진, 송주연, 윤수민, 조준호)
 
@@ -54,22 +54,12 @@ flowchart LR
 
 ## 2. 개발 환경
 
-<table>
-<tr><td><b>Language</b></td><td>
-<img src="https://img.shields.io/badge/-VERILOG-1E88E5?style=for-the-badge&logoColor=white"/>
-<img src="https://img.shields.io/badge/C-FFC107?style=for-the-badge&logo=c&logoColor=white"/>
-</td></tr>
-<tr><td><b>Tool</b></td><td>
-<img src="https://img.shields.io/badge/VIVADO-006400?style=for-the-badge&logo=amd&logoColor=white"/>
-<img src="https://img.shields.io/badge/VITIS-004B87?style=for-the-badge&logo=amd&logoColor=white"/>
-</td></tr>
-<tr><td><b>Protocol</b></td><td>
-<img src="https://img.shields.io/badge/AXI4--LITE-0B1F3A?style=for-the-badge&logo=amd&logoColor=white"/>
-</td></tr>
-<tr><td><b>Board</b></td><td>
-<img src="https://img.shields.io/badge/BASYS3_(XILINX_ARTIX--7)-5BC0DE?style=for-the-badge&logo=amd&logoColor=white"/>
-</td></tr>
-</table>
+| Category | Badges |
+| :--- | :--- |
+| **Languages** | ![SystemVerilog](https://img.shields.io/badge/SystemVerilog-00BCD4?style=for-the-badge&logo=IEEE&logoColor=white) ![Verilog HDL](https://img.shields.io/badge/Verilog%20HDL-1E90FF?style=for-the-badge&logoColor=white) ![C](https://img.shields.io/badge/C-FFD700?style=for-the-badge&logo=c&logoColor=white) ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white) 
+| **Tool** |  ![Vivado](https://img.shields.io/badge/AMD%20Vivado-1E4620?style=for-the-badge&logo=amd&logoColor=white)  ![Vitis](https://img.shields.io/badge/Vitis-43734C?style=for-the-badge)
+| **Hardware** | ![Zybo Z7](https://img.shields.io/badge/Zybo_Z7-DB506E?style=for-the-badge) ![Jetson Orin Nano](https://img.shields.io/badge/NVIDIA%20Jetson%20Orin%20Nano-76B900?style=for-the-badge&logo=nvidia&logoColor=white) ![PCAM](https://img.shields.io/badge/PCAM(OV5640)-DB506E?style=for-the-badge) ![HC-SR04](https://img.shields.io/badge/HC--SR04-56B801E?style=for-the-badge) ![SG90](https://img.shields.io/badge/SG90-DB303E?style=for-the-badge) ![ESP-32](https://img.shields.io/badge/ESP--32-DB809E?style=for-the-badge) |
+
 
 ---
 
