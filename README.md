@@ -108,10 +108,16 @@
 
 ## 4. 핵심 구현 내용
 
-### 하드웨어 CNN 가속기
-- 번호판 이미지로부터 숫자를 추론하여 차량 번호 4자리 인식
-- Lenet-5 기반 Adder Tree 구조의 CNN 가속기를 하드웨어로 구현
+### CNN 하드웨어 가속기
+- 가공 및 전처리된 번호판 이미지로부터 숫자를 추론하여 차량 번호 4자리 인식
+- Lenet-5 구조 기반 Adder Tree 방식으로 연산하는 CNN 가속기를 하드웨어로 구현하여 추론 시간 대폭 감소
+- Python 기반의 Golden Reference Model 학습 결과로 나온 가중치(Weight) 및 편향(Bias) 추출
+- 시스템 구동 시 Zybo 보드 DDR3 메모리에 저장된 가중치 및 편향 데이터가 AXI4-Lite 인터페이스를 통해 PL 영역의 BRAM으로 전달됨
 
+---
+
+#### Lenet-5
+- 프로젝트 규모와 FPGA 보드 자원 등을 고려해 가장 일반적인 CNN 모델인 Lenet-5 구조 채택
 <table>
   <tr>
     <td align="left">
@@ -134,6 +140,23 @@
   <tr>
     <td align="left">
       <b>그림 4. Lenet-5를 본뜬 CNN 하드웨어 가속기 구조</b>
+    </td>
+  </tr>
+</table>
+
+---
+
+#### Adder Tree
+
+<table>
+  <tr>
+    <td align="left">
+      <img src="https://github.com/user-attachments/assets/464d2f78-8023-4bc6-a8bb-012f6f723245" />
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+      <b>그림 5. Adder Tree 방식 적용 전후 구조</b>
     </td>
   </tr>
 </table>
