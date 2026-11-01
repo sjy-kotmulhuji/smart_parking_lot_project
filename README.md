@@ -12,7 +12,7 @@
    - [4-1. 출입구 차량 인식 및 번호판 인식 시스템](#4-1-출입구-차량-인식-및-번호판-인식-시스템)
    - [4-2. 하드웨어 CNN 가속기 (Core Architecture)](#4-2-하드웨어-cnn-가속기-core-architecture)
    - [4-3. 주차장 내부 제어 및 관제 시스템](#4-3-주차장-내부-제어-및-관제-시스템)
-5. [검증 및 결과](#5-검증-및-결과)
+5. [결과 및 동작 영상](#5-결과-및-동작-영상)
 6. [트러블 슈팅 (Troubleshooting)](#6-트러블-슈팅-troubleshooting)
 
 ---
@@ -104,7 +104,9 @@
 - 가공 및 전처리된 번호판 이미지로부터 숫자를 추론하여 차량 번호 4자리 인식
 - Lenet-5 구조 기반 Adder Tree 방식으로 연산하는 CNN 가속기를 하드웨어로 구현하여 소프트웨어 대비 추론 시간 대폭 감소
 - Python 기반의 Golden Reference Model 학습 결과로 나온 가중치(Weight) 및 편향(Bias) 추출
-- 시스템 구동 시 Zybo 보드 DDR3 메모리에 저장된 가중치 및 편향 데이터가 AXI4-Lite 인터페이스를 통해 PL 영역의 BRAM으로 전달됨
+- 시스템 구동 시 Zybo 보드 DDR3 메모리에 저장된 가중치 PL 영역의 각 BRAM 모듈로 전달
+   - **DDR3 상주 가중치 로딩**: Vitis 펌웨어 빌드 시 약 62KB의 INT8 양자화 가중치 배열(`cnn_weights.cc`)이 DDR3 메모리에 상주
+   - **AXI4-Lite 전송**: 부팅 직후 ARM CPU가 AXI4-Lite 버스를 통해 `axi_weight_loader` IP로 가중치를 순차 전송하여 FPGA BRAM 1~5에 1회 주입
 
 ---
 ### 개념 설명
@@ -160,13 +162,28 @@
 ---
 ### Pooling Layer 설계
 
-- Pooling Layer 역할: Convolution 연산 결과 피처맵을 윈도우 사이즈에 따라 압축하여 특징을 뽑아냄
+- Pooling Layer 역할: Convolution 연산 결과 피처맵을 윈도우 사이즈에 따라 압축하여 특징을 뽑아내고 면적 및 지연 최소화
 - Max Pooling: 윈도우 영역 내 픽셀 값 중 최값 선택
+
+<table>
+  <tr>
+    <td align="left">
+      <img src="https://github.com/user-attachments/assets/8f27cf96-b8a1-47a7-a2d3-3d995ec3df48" />
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+      <b>그림 6. Max Pooling</b>
+    </td>
+  </tr>
+</table>
+
+---
 
 ### Convolution & Pooling Layer 통합
 **Conv1, Pool1 통합**
 - Conv1 결과 피처맵 크기: 28x28x6
-- Pooling 윈도우 사이즈 2x2
+- Pooling 윈도우 사이즈 2x2, 스트라이드 2
 - Pool1 결과 피처맵 크기: 14x14x6
 - Conv2는 Conv1과 달리 다채널(채널 6개) 연산이므로 Pooling 결과를 BRAM 6개 나눠서 저장
 <table>
@@ -177,13 +194,35 @@
   </tr>
   <tr>
     <td align="left">
-      <b>그림 6. Conv1, Pool1 Top Module</b>
+      <b>그림 7. Conv1, Pool1 Top Module</b>
     </td>
   </tr>
 </table>
 
 
 **Conv2, Pool2 통합**
+- Conv2: 입력 채널 6개, 출력 채널 16개인 다채널 연산
+  - 결과 피처맵 크기: 10x10x16
+- Pool2 결과 피처맵 크기: 5x5x16
+- Convolution의 커널 크기가 5x5이므로 Conv3 연산은 사실상 FC 연산과 같음
+- 따라서 채널별로 다른 BRAM에 저장할 필요가 없음 
+
+<table>
+  <tr>
+    <td align="left">
+      <img src="https://github.com/user-attachments/assets/971b8634-93ac-4ec1-9931-5c9a977aa13d" />
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+      <b>그림 8. Conv2, Pool2 Top Module</b>
+    </td>
+  </tr>
+</table>
+
+---
+
+## 5. 결과 및 동작 영상
 
 
 
