@@ -100,12 +100,14 @@
 ## 4. 핵심 구현 내용
 
 ### CNN 하드웨어 가속기
+
 - 가공 및 전처리된 번호판 이미지로부터 숫자를 추론하여 차량 번호 4자리 인식
 - Lenet-5 구조 기반 Adder Tree 방식으로 연산하는 CNN 가속기를 하드웨어로 구현하여 소프트웨어 대비 추론 시간 대폭 감소
 - Python 기반의 Golden Reference Model 학습 결과로 나온 가중치(Weight) 및 편향(Bias) 추출
 - 시스템 구동 시 Zybo 보드 DDR3 메모리에 저장된 가중치 및 편향 데이터가 AXI4-Lite 인터페이스를 통해 PL 영역의 BRAM으로 전달됨
 
 ---
+### 개념 설명
 
 #### Lenet-5
 - 프로젝트 규모와 FPGA 보드 자원 등을 고려해 가장 일반적인 CNN 모델인 Lenet-5 구조 채택
@@ -155,8 +157,36 @@
   </tr>
 </table>
 
-#### Pooling Layer
-- 
+---
+### Pooling Layer 설계
+
+- Pooling Layer 역할: Convolution 연산 결과 피처맵을 윈도우 사이즈에 따라 압축하여 특징을 뽑아냄
+- Max Pooling: 윈도우 영역 내 픽셀 값 중 최값 선택
+
+### Convolution & Pooling Layer 통합
+**Conv1, Pool1 통합**
+- Conv1 결과 피처맵 크기: 28x28x6
+- Pooling 윈도우 사이즈 2x2
+- Pool1 결과 피처맵 크기: 14x14x6
+- Conv2는 Conv1과 달리 다채널(채널 6개) 연산이므로 Pooling 결과를 BRAM 6개 나눠서 저장
+<table>
+  <tr>
+    <td align="left">
+      <img src="https://github.com/user-attachments/assets/cddcb653-dce2-47b1-81a0-053533a35362" />
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+      <b>그림 6. Conv1, Pool1 Top Module</b>
+    </td>
+  </tr>
+</table>
+
+
+**Conv2, Pool2 통합**
+
+
+
 
 ### 4-1. 출입구 차량 인식 및 번호판 인식 시스템
 
