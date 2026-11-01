@@ -2,14 +2,12 @@ fh # 🚗 스마트 주차장
 > 온디바이스AI 시스템 반도체 설계 1기  | 대한상공회의소 서울기술교육센터 | 2026.08.20 |
 > Cars대라(김수빈, 김지홍, 문태성, 서어진, 송주연, 윤수민, 조준호)
 
-**Xilinx Zynq-7000 (Zybo Z7-20) FPGA 가속기 & NVIDIA Jetson Orin Nano 기반 이종(Heterogeneous) 엣지 컴퓨팅 주차 관제 솔루션**
-
 ---
 
 ## 📌 목차
 1. [프로젝트 개요](#프로젝트-개요)
-2. [개발 환경](#2-개발-환경)
-3. [시스템 구성요소 및 역할](#3-시스템-구성요소-및-역할)
+2. [개발 환경](#개발-환경)
+3. [시스템 구성](#시스템-구성)
 4. [설계 내용](#4-설계-내용)
    - [4-1. 출입구 차량 인식 및 번호판 인식 시스템](#4-1-출입구-차량-인식-및-번호판-인식-시스템)
    - [4-2. 하드웨어 CNN 가속기 (Core Architecture)](#4-2-하드웨어-cnn-가속기-core-architecture)
@@ -32,9 +30,22 @@ fh # 🚗 스마트 주차장
 
 ---
 
-## 2. 개발 환경
+### 팀원 소개
+| 이름 | 담당 역할 |
+| :---: | :--- |
+| 김수빈<br>(팀장) | Pcam 5C 구동 및 HDMI 출력, CNN 가중치 BRAM 로드, 초음파 센서 설계, Zybo 전체 통합 및 디버깅 |
+| 김지홍 | CNN 통합, Control Unit, Conv3, FC1, FC2 설계 |
+| 문태성 | CNN Reference Model 설계, Conv1, Conv2 검증 |
+| **송주연** | **Pooling Layer 설계, Convolution - Pooling 통합 및 검증** |
+| 조준호 | Conv1, Conv2 설계, 차량 Dataset labeling |
+| 윤수민 | 카메라 캡처 및 이미지 전처리, 서보 모터, UART, Wi-Fi 송신,<br>PreProcess 통합 |
+| 서어진 | Jetson (YOLO, OC-SORT) 관리 시스템, Wi-Fi 수신, 카메라 캡처<br>UVM 검증 |
 
-| Category | Badges |
+---
+
+## 개발 환경
+
+|  |  |
 | :--- | :--- |
 | **Languages** | ![SystemVerilog](https://img.shields.io/badge/SystemVerilog-00BCD4?style=for-the-badge&logo=IEEE&logoColor=white) ![Verilog HDL](https://img.shields.io/badge/Verilog%20HDL-1E90FF?style=for-the-badge&logoColor=white) ![C](https://img.shields.io/badge/C-FFD700?style=for-the-badge&logo=c&logoColor=white) ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white) 
 | **Tool** |  ![Vivado](https://img.shields.io/badge/AMD%20Vivado-1E4620?style=for-the-badge&logo=amd&logoColor=white)  ![Vitis](https://img.shields.io/badge/Vitis-43734C?style=for-the-badge)
@@ -43,7 +54,7 @@ fh # 🚗 스마트 주차장
 
 ---
 
-### 2-1. 하드웨어 스펙
+### 하드웨어 스펙
 | 구분 | 디바이스 / 부품명 | 세부 사양 및 인터페이스 |
 | :--- | :--- | :--- |
 | **FPGA Board** | Digilent Zybo Z7-20 | Xilinx Zynq-7000 (XC7Z020-1CLG400C) Dual Cortex-A9 @ 667MHz |
@@ -54,7 +65,7 @@ fh # 🚗 스마트 주차장
 | **액추에이터** | SG90 마이크로 서보모터 | 50Hz PWM 차단기 개폐 제어 |
 | **디스플레이** | HDMI Monitor | 720p@60Hz 실시간 카메라 영상 및 디버그 오버레이 |
 
-### 2-2. 소프트웨어 & 툴체인
+### 소프트웨어 & 툴체인
 * **FPGA Logic & SoC**: Xilinx Vivado 2020.2, Vitis 2020.2 (Baremetal C/C++ 펌웨어)
 * **하드웨어 기술 언어**: Verilog, SystemVerilog
 * **딥러닝 프레임워크**: PyTorch (모델 학습 및 양자화), NVIDIA TensorRT (Jetson 엔진)
@@ -63,16 +74,33 @@ fh # 🚗 스마트 주차장
 
 ---
 
-## 3. 시스템 구성요소 및 역할
+## 시스템 구성
 
-| 구성요소 | 계층 | 주요 역할 및 동작 |
-| :--- | :---: | :--- |
-| **Zybo Z7 (PL: FPGA)** | Hardware | 초음파 에코 펄스 카운팅, 서보모터 PWM 생성, MIPI 비디오 수신, Grayscale 전처리, **CNN 병렬 연산 가속기(LeNet-5)** 구동 |
-| **Zybo Z7 (PS: ARM)** | Firmware | OV5640 카메라 I2C/SCCB 레지스터 세팅, VDMA 및 HDMI 비디오 출력 파이프라인 관리, **부팅 시 CNN 가중치 BRAM 주입**, 시스템 모니터링 |
-| **Pcam 5C (OV5640)** | Hardware | 진입 차량의 전면 번호판 고해상도 촬영 및 MIPI CSI-2 직렬 전송 |
-| **HC-SR04 & SG90** | Hardware | 차량 3cm 진입 감지 시 FSM 트리거, 번호판 인식 완료 시 차단기 90도 회전 오픈 |
-| **Jetson Orin Nano** | System | YOLOv8n 기반 내부 차량 검출, ByteTrack 기반 다중 객체 추적, 호모그래피 투영 변환, 최단 빈자리 알고리즘 |
-| **UART Interface** | Comm | Zybo(PL) $\rightarrow$ Jetson Orin Nano 간 8비트 패킷 기반 4자리 차량 번호 실시간 전송 |
+### 전체 아키텍처 구조
+<table>
+  <tr>
+    <td align="left">
+      <img src="https://github.com/user-attachments/assets/b65fa28a-c87a-4477-8db5-516b79c8de09" />
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+      <b>그림 1. Top Architecture Diagram</b>
+    </td>
+  </tr>
+</table>
+
+
+### 구성요소 별 역할
+
+| 구성요소 | 역할 | 상세 |
+| :--- | :--- | :--- |
+| **Zybo Z7 PL 영역 (FPGA)** |  출입구 시스템 하드웨어 로직 | 센서 제어, 영상 및 이미지 처리, 번호판 추론 CNN 가속기 로직 구현 |
+| **Zybo Z7 PS 영역(ARM)** | Firmware 기반 출입구 시스템 제어 | OV5640 카메라 I2C/SCCB 레지스터 세팅, VDMA 및 HDMI 비디오 출력 파이프라인 관리, 부팅 시 CNN 가중치 BRAM 주입, 시스템 모니터링 |
+| **Pcam 5C (OV5640)** | 출입구 차단바 CCTV | 주차장 출입 차량의 전면 번호판 고해상도 촬영 및 MIPI 전송 |
+| **HC-SR04** |  | 차량 3cm 진입 감지 시 FSM 트리거, 번호판 인식 완료 시 차단기 90도 회전 오픈 |
+| **SG90** | Comm | Zybo(PL) $\rightarrow$ Jetson Orin Nano 간 8비트 패킷 기반 4자리 차량 번호 실시간 전송 |
+| **Jetson Orin Nano** | YOLOv8n 기반 내부 차량 검출, ByteTrack 기반 다중 객체 추적, 호모그래피 투영 변환, 최단 빈자리 알고리즘 |
 | **통합 관제 GUI** | Software | 실시간 2D 주차장 지도 시각화, 차량 위치 추적, 주차면 점유 상태 모니터링, 차량 번호 검색 |
 
 ---
