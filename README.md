@@ -86,7 +86,9 @@
 
 ## 4. 핵심 구현 내용
 
-### CNN 하드웨어 가속기
+---
+
+### 4-1. CNN 하드웨어 가속기(담당 파트)
 
 - 가공 및 전처리된 번호판 이미지로부터 숫자를 추론하여 차량 번호 4자리 인식
 - Lenet-5 구조 기반 Adder Tree 방식으로 연산하는 CNN 가속기를 하드웨어로 구현하여 소프트웨어 대비 추론 시간 대폭 감소
@@ -203,6 +205,46 @@
   <tr>
     <td align="left">
       <b>그림 8. Conv2, Pool2 Top Module</b>
+    </td>
+  </tr>
+</table>
+
+---
+### 4-2. 영상 처리 파이프라인(팀원 설계)
+- PCam 실시간 고속 영상을 DDR3 메모리에 저장하고, HDMI 송출 및 CNN 추론을 위해 불러오는 동작
+- 동작 흐름
+  1. PCam 영상 스트림을 AXI4-Stream 형식으로 수신하여 AXI VDMA로 전송
+  2. VDMA의 S2MM(Stream to Memory Map) 채널을 통해 DDR3 메모리에 적재(AXI4 프로토콜로 동작)
+  3. 송출 및 추론에 필요한 프레임 데이터를 VDMA의 MM2S(Memory Map to Stream) 채널로 불러옴
+  
+<table>
+  <tr>
+    <td align="left">
+      <img src="https://github.com/user-attachments/assets/9ce3803f-6432-4680-8432-1a10bb215356" />
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+      <b>그림 9. 영상 처리 파이프라인</b>
+    </td>
+  </tr>
+</table>
+
+---
+
+### 4-3. 프레임 데이터 전처리(팀원 설계)
+- VDMA의 MM2S 채널을 통해 메모리에서 가져온 PCam 캡처 이미지를 CNN 가속 추론에 적합한 형태로 가공
+- Preprocess에서 관심 영역(ROI) 검출 및 이진화 전처리 과정을 거쳐 Pixel Buffer에 저장
+  
+<table>
+  <tr>
+    <td align="left">
+      <img src="https://github.com/user-attachments/assets/ea278e40-517d-46bf-bdcf-35e3ff9b5e1d" />
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+      <b>그림 10. Preprocess 모듈 구조 및 가공 과정</b>
     </td>
   </tr>
 </table>
